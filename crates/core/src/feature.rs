@@ -1,17 +1,17 @@
 use std::{future::Future, pin::Pin, sync::Arc};
 
-use crate::{event::DynEventBus, router::RpcRouter, types::Clock};
+use crate::{event::DynEventBus, router::RpcRegistry, types::Clock};
 
 /// Context provided to features during initialization.
 #[derive(Clone)]
 pub struct FeatureContext {
-    pub router: Arc<dyn RpcRouter>,
+    pub router: Arc<dyn RpcRegistry>,
     pub events: DynEventBus,
     pub clock: Arc<dyn Clock>,
 }
 
 impl FeatureContext {
-    pub fn new(router: Arc<dyn RpcRouter>, events: DynEventBus, clock: Arc<dyn Clock>) -> Self {
+    pub fn new(router: Arc<dyn RpcRegistry>, events: DynEventBus, clock: Arc<dyn Clock>) -> Self {
         Self {
             router,
             events,

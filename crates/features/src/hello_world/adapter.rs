@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use service_core::{
     event::{EventBus, TransportEvent},
-    router::{rpc_handler, RouterError, RpcError, RpcRequest, RpcResponse, RpcRouter},
+    router::{rpc_handler, RouterError, RpcError, RpcRegistry, RpcRequest, RpcResponse},
     types::Clock,
 };
 
 use crate::hello_world::{api, domain};
 
 pub fn register(
-    router: Arc<dyn RpcRouter>,
+    router: Arc<dyn RpcRegistry>,
     events: Arc<dyn EventBus>,
     clock: Arc<dyn Clock>,
 ) -> Result<(), RouterError> {

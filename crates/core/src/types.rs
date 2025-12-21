@@ -14,10 +14,8 @@ pub struct SystemClock;
 
 impl Clock for SystemClock {
     fn now_rfc3339(&self) -> String {
-        let seconds = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or_default()
-            .as_secs();
-        format!("{seconds}T00:00:00Z")
+        time::OffsetDateTime::now_utc()
+            .format(&time::format_description::well_known::Rfc3339)
+            .unwrap_or_else(|_| "1970-01-01T00:00:00Z".to_string())
     }
 }

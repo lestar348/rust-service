@@ -17,8 +17,8 @@ pub use event::{
 pub use feature::{Feature, FeatureContext, FeatureFuture, FeatureInitError, FeatureResult};
 pub use manager::{TransportManager, TransportManagerApi};
 pub use router::{
-    rpc_handler, InMemoryRouter, RouterError, RpcError, RpcHandler, RpcRequest, RpcResponse,
-    RpcRouter,
+    rpc_handler, InMemoryRouter, RouterError, RpcError, RpcHandler, RpcRegistry, RpcRequest,
+    RpcResponse,
 };
 pub use transport::Transport;
 pub use types::{Clock, FeatureId, SystemClock, TransportId};

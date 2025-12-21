@@ -1,43 +1,39 @@
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::Arc;
 
 use service_core::{
     event::{
         EventBus, EventError, EventPublisher, EventSubscriber, EventSubscription, TransportEvent,
     },
-    router::{InMemoryRouter, RpcError, RpcRequest, RpcResponse, RpcRouter},
+    router::{InMemoryRouter, RpcError, RpcRegistry, RpcRequest, RpcResponse},
     transport::Transport,
     types::TransportId,
 };
+use tokio::sync::broadcast;
 
 #[derive(Clone)]
 pub struct MockTransport {
-    router: InMemoryRouter,
-    subscribers: Arc<Mutex<Vec<mpsc::Sender<TransportEvent>>>>,
+    registry: InMemoryRouter,
+    events: BroadcastEventBus,
 }
 
 impl MockTransport {
     pub fn new() -> Self {
         Self {
-            router: InMemoryRouter::new(),
-            subscribers: Arc::new(Mutex::new(Vec::new())),
+            registry: InMemoryRouter::new(),
+            events: BroadcastEventBus::new(),
         }
     }
 
-    pub fn router(&self) -> Arc<dyn RpcRouter> {
-        Arc::new(self.router.clone())
+    pub fn registry(&self) -> Arc<dyn RpcRegistry> {
+        Arc::new(self.registry.clone())
     }
 
     pub fn events(&self) -> Arc<dyn EventBus> {
-        Arc::new(MockEvents {
-            subscribers: self.subscribers.clone(),
-        })
+        Arc::new(self.events.clone())
     }
 
     pub async fn handle_incoming(&self, req: RpcRequest) -> Result<RpcResponse, RpcError> {
-        match self.router.get(&req.service, &req.method) {
-            Some(handler) => handler(req).await,
-            None => Err(RpcError::UnknownMethod),
-        }
+        self.registry.dispatch(req).await
     }
 }
 
@@ -52,28 +48,28 @@ impl Transport for MockTransport {
 }
 
 #[derive(Clone)]
-struct MockEvents {
-    subscribers: Arc<Mutex<Vec<mpsc::Sender<TransportEvent>>>>,
+struct BroadcastEventBus {
+    sender: broadcast::Sender<TransportEvent>,
 }
 
-impl EventPublisher for MockEvents {
-    fn publish(&self, event: TransportEvent) -> Result<(), EventError> {
-        let mut subscribers = self
-            .subscribers
-            .lock()
-            .map_err(|err| EventError::Publish(err.to_string()))?;
-
-        subscribers.retain(|sender| sender.send(event.clone()).is_ok());
-        Ok(())
+impl BroadcastEventBus {
+    fn new() -> Self {
+        let (sender, _) = broadcast::channel(16);
+        Self { sender }
     }
 }
 
-impl EventSubscriber for MockEvents {
+impl EventPublisher for BroadcastEventBus {
+    fn publish(&self, event: TransportEvent) -> Result<(), EventError> {
+        self.sender
+            .send(event)
+            .map(|_| ())
+            .map_err(|err| EventError::Publish(err.to_string()))
+    }
+}
+
+impl EventSubscriber for BroadcastEventBus {
     fn subscribe(&self) -> EventSubscription {
-        let (tx, rx) = mpsc::channel();
-        if let Ok(mut subscribers) = self.subscribers.lock() {
-            subscribers.push(tx);
-        }
-        EventSubscription::new(rx)
+        EventSubscription::new(self.sender.subscribe())
     }
 }

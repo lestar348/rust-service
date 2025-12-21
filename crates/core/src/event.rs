@@ -1,8 +1,6 @@
-use std::{
-    error::Error,
-    fmt::Display,
-    sync::{mpsc, Arc},
-};
+use std::{error::Error, fmt::Display, sync::Arc};
+
+use tokio::sync::broadcast;
 
 /// Event payload emitted over transports.
 #[derive(Debug, Clone)]
@@ -29,17 +27,18 @@ impl Error for EventError {}
 
 /// An owned subscription to transport events.
 pub struct EventSubscription {
-    receiver: mpsc::Receiver<TransportEvent>,
+    receiver: broadcast::Receiver<TransportEvent>,
 }
 
 impl EventSubscription {
-    pub fn new(receiver: mpsc::Receiver<TransportEvent>) -> Self {
+    pub fn new(receiver: broadcast::Receiver<TransportEvent>) -> Self {
         Self { receiver }
     }
 
     pub async fn recv(&mut self) -> Result<TransportEvent, EventError> {
         self.receiver
             .recv()
+            .await
             .map_err(|err| EventError::Receive(err.to_string()))
     }
 }

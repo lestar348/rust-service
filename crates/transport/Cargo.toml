@@ -12,3 +12,4 @@ transport_ble = []
 
 [dependencies]
 service-core = { path = "../core" }
+tokio = { version = "1", features = ["sync"] }

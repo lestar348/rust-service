@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     error::Error,
     fmt::Display,
     future::Future,
@@ -80,10 +81,11 @@ impl Error for RouterError {}
 pub type RpcFuture = Pin<Box<dyn Future<Output = Result<RpcResponse, RpcError>> + Send>>;
 pub type RpcHandler = Arc<dyn Fn(RpcRequest) -> RpcFuture + Send + Sync>;
 
-/// Abstraction over server-side RPC routing.
-pub trait RpcRouter: Send + Sync {
+/// Abstraction over server-side RPC routing and dispatching.
+pub trait RpcRegistry: Send + Sync {
     fn register(&self, service: &str, method: &str, handler: RpcHandler)
         -> Result<(), RouterError>;
+    fn dispatch(&self, req: RpcRequest) -> RpcFuture;
 }
 
 /// Helper to wrap async closures into an [`RpcHandler`].
@@ -98,13 +100,13 @@ where
 /// Simple in-memory router implementation that can be embedded in transports.
 #[derive(Default, Clone)]
 pub struct InMemoryRouter {
-    handlers: Arc<Mutex<Vec<((String, String), RpcHandler)>>>,
+    handlers: Arc<Mutex<HashMap<(String, String), RpcHandler>>>,
 }
 
 impl InMemoryRouter {
     pub fn new() -> Self {
         Self {
-            handlers: Arc::new(Mutex::new(Vec::new())),
+            handlers: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -114,31 +116,29 @@ impl InMemoryRouter {
         }
 
         let mut handlers = self.handlers.lock().expect("router mutex poisoned");
-        match handlers
-            .iter_mut()
-            .position(|((svc, mth), _)| svc == service && mth == method)
-        {
-            Some(_) => Err(RouterError::DuplicateRegistration {
-                service: service.to_string(),
-                method: method.to_string(),
-            }),
-            None => {
-                handlers.push(((service.to_string(), method.to_string()), handler));
+        match handlers.entry((service.to_string(), method.to_string())) {
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                entry.insert(handler);
                 Ok(())
+            }
+            std::collections::hash_map::Entry::Occupied(_) => {
+                Err(RouterError::DuplicateRegistration {
+                    service: service.to_string(),
+                    method: method.to_string(),
+                })
             }
         }
     }
 
-    pub fn get(&self, service: &str, method: &str) -> Option<RpcHandler> {
+    fn get(&self, service: &str, method: &str) -> Option<RpcHandler> {
         let handlers = self.handlers.lock().expect("router mutex poisoned");
         handlers
-            .iter()
-            .find(|((svc, mth), _)| svc == service && mth == method)
-            .map(|(_, handler)| handler.clone())
+            .get(&(service.to_string(), method.to_string()))
+            .cloned()
     }
 }
 
-impl RpcRouter for InMemoryRouter {
+impl RpcRegistry for InMemoryRouter {
     fn register(
         &self,
         service: &str,
@@ -146,5 +146,12 @@ impl RpcRouter for InMemoryRouter {
         handler: RpcHandler,
     ) -> Result<(), RouterError> {
         self.insert(service, method, handler)
+    }
+
+    fn dispatch(&self, req: RpcRequest) -> RpcFuture {
+        match self.get(&req.service, &req.method) {
+            Some(handler) => handler(req),
+            None => Box::pin(async { Err(RpcError::UnknownMethod) }),
+        }
     }
 }

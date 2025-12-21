@@ -9,3 +9,4 @@ publish = false
 service-core = { path = "../crates/core" }
 service-features = { path = "../crates/features" }
 service-transport = { path = "../crates/transport", features = ["transport_mock"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
