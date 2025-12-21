@@ -1,0 +1,8 @@
+[transport]
+mode = "auto"
+
+[logging]
+level = "info"
+
+[runtime]
+workers = 4

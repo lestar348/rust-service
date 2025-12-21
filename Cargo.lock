@@ -3,25 +3,40 @@
 version = 4
 
 [[package]]
-name = "app"
+name = "service-app"
+version = "0.1.0"
+dependencies = [
+ "service-core",
+ "service-features",
+ "service-platform",
+ "service-transport",
+]
+
+[[package]]
+name = "service-core"
 version = "0.1.0"
 
 [[package]]
-name = "core"
+name = "service-devtools"
 version = "0.1.0"
 
 [[package]]
-name = "devtools"
+name = "service-features"
 version = "0.1.0"
+dependencies = [
+ "service-core",
+]
 
 [[package]]
-name = "features"
+name = "service-platform"
 version = "0.1.0"
+dependencies = [
+ "service-core",
+]
 
 [[package]]
-name = "platform"
+name = "service-transport"
 version = "0.1.0"
-
-[[package]]
-name = "transport"
-version = "0.1.0"
+dependencies = [
+ "service-core",
+]
