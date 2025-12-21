@@ -1,0 +1,11 @@
+[package]
+name = "service-tests"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dev-dependencies]
+service-core = { path = "../crates/core" }
+service-features = { path = "../crates/features" }
+service-transport = { path = "../crates/transport", features = ["transport_mock"] }
