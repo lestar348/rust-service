@@ -5,3 +5,5 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
+time = { version = "0.3", features = ["formatting"] }
+tokio = { version = "1", features = ["sync"] }

@@ -35,6 +35,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "service-tests"
+version = "0.1.0"
+dependencies = [
+ "service-core",
+ "service-features",
+ "service-transport",
+]
+
+[[package]]
 name = "service-transport"
 version = "0.1.0"
 dependencies = [

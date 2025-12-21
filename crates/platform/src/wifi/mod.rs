@@ -1,4 +1,4 @@
-use service_core::{Result, TransportId};
+use service_core::TransportId;
 
 pub struct WifiDetector;
 

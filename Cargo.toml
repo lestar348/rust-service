@@ -6,6 +6,7 @@ members = [
     "crates/platform",
     "crates/app",
     "crates/devtools",
+    "tests",
 ]
 resolver = "2"
 

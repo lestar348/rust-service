@@ -1,19 +1,42 @@
-use service_core::{Feature, FeatureId, Transport};
+use std::sync::Arc;
 
-pub struct HelloWorldFeature;
+use service_core::{
+    feature::{FeatureFuture, FeatureInitError},
+    types::Clock,
+    Feature, FeatureContext, SystemClock,
+};
+
+mod adapter;
+pub mod api;
+mod domain;
+
+pub struct HelloWorldFeature {
+    clock: Arc<dyn Clock>,
+}
 
 impl HelloWorldFeature {
     pub fn new() -> Self {
-        Self
+        Self {
+            clock: Arc::new(SystemClock),
+        }
+    }
+
+    pub fn with_clock(clock: Arc<dyn Clock>) -> Self {
+        Self { clock }
     }
 }
 
 impl Feature for HelloWorldFeature {
-    fn id(&self) -> FeatureId {
-        "hello_world".to_string()
+    fn name(&self) -> &'static str {
+        "hello_world"
     }
 
-    fn initialize(&self, _transport: &dyn Transport) -> service_core::Result<()> {
-        Ok(())
+    fn init(&self, ctx: FeatureContext) -> FeatureFuture<'_> {
+        let clock = self.clock.clone();
+        Box::pin(async move {
+            adapter::register(ctx.router, ctx.events, clock)
+                .map_err(|err| FeatureInitError::new(err.to_string()))?;
+            Ok(())
+        })
     }
 }
