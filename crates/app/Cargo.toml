@@ -1,6 +1,17 @@
 [package]
-name = "app"
+name = "service-app"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+license = "MIT"
+
+[features]
+default = ["use_transport_mock"]
+use_transport_mock = ["service-transport/transport_mock"]
+use_transport_http = ["service-transport/transport_http"]
+use_transport_ble = ["service-transport/transport_ble"]
 
 [dependencies]
+service-core = { path = "../core" }
+service-transport = { path = "../transport", default-features = false }
+service-features = { path = "../features" }
+service-platform = { path = "../platform" }

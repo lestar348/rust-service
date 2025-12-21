@@ -1,14 +1,15 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Core abstractions for the service project.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod config;
+pub mod error;
+pub mod feature;
+pub mod manager;
+pub mod transport;
+pub mod types;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use config::AppConfig;
+pub use error::{Error, Result};
+pub use feature::Feature;
+pub use manager::{TransportManager, TransportManagerApi};
+pub use transport::Transport;
+pub use types::{FeatureId, TransportId};

@@ -1,0 +1,8 @@
+[transport]
+mode = "mock"
+
+[logging]
+level = "info"
+
+[runtime]
+workers = 2

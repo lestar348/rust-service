@@ -1,0 +1,13 @@
+[Unit]
+Description=Service App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/service_app /etc/service-project/config.toml
+Restart=on-failure
+User=service
+Group=service
+
+[Install]
+WantedBy=multi-user.target

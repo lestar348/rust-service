@@ -8,3 +8,11 @@ members = [
     "crates/devtools",
 ]
 resolver = "2"
+
+[workspace.package]
+edition = "2021"
+authors = ["Service Project Maintainers"]
+license = "MIT"
+
+[workspace.dependencies]
+# Shared dependencies can be added here as the project grows.
