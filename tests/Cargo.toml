@@ -5,10 +5,19 @@ edition = "2021"
 license = "MIT"
 publish = false
 
+[dependencies]
+axum = { version = "0.7", optional = true }
+
 [dev-dependencies]
 service-core = { path = "../crates/core" }
 service-features = { path = "../crates/features" }
-service-transport = { path = "../crates/transport", features = ["transport_mock", "transport_http"] }
+service-transport = { path = "../crates/transport", features = [
+    "transport_mock",
+    "transport_http",
+] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+] }
 base64 = "0.21"

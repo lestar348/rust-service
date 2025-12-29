@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use axum::Router;
 use base64::{engine::general_purpose, Engine as _};
 use reqwest::StatusCode;
 use service_core::{feature::FeatureContext, types::Clock, Feature};
@@ -49,11 +48,8 @@ async fn http_rpc_hello_world() {
         .await
         .expect("bind listener");
     let addr = listener.local_addr().expect("local addr");
-    let router: Router = server.router();
 
-    let server_task = tokio::spawn(async move {
-        axum::serve(listener, router).await.expect("server run");
-    });
+    let server_task = tokio::spawn(async move { server.serve(addr).await });
 
     let client = reqwest::Client::new();
     let url = format!("http://{}/rpc", addr);
